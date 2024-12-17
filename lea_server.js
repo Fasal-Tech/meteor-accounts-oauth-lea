@@ -11,14 +11,14 @@ if (Meteor.release) {
   userAgent += `/${Meteor.release}`
 }
 
-OAuth.registerService('lea', 2, null, query => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'lea' })
+OAuth.registerService('lea', 2, null, async (query) => {
+  const config = await ServiceConfiguration.configurations.findOneAsync({ service: 'lea' })
   if (!config) {
     throw new ServiceConfiguration.ConfigError()
   }
 
-  const accessToken = getAccessToken(query)
-  const identity = getIdentity(accessToken)
+  const accessToken = await getAccessToken(query)
+  const identity = await getIdentity(accessToken)
   const sealedToken = OAuth.sealSecret(accessToken)
 
   const profile = {}
@@ -45,8 +45,8 @@ OAuth.registerService('lea', 2, null, query => {
   }
 })
 
-const getAccessToken = query => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'lea' })
+const getAccessToken = async(query) => {
+  const config = await ServiceConfiguration.configurations.findOneAsync({ service: 'lea' })
   if (!config) {
     throw new ServiceConfiguration.ConfigError()
   }
@@ -68,7 +68,7 @@ const getAccessToken = query => {
   }
 
   try {
-    response = HTTP.post(config.accessTokenUrl, options)
+    response = await HTTP.post(config.accessTokenUrl, options)
   } catch (err) {
     throw Object.assign(new Error(`Failed to complete OAuth handshake with lea. ${err.message}`), { response: err.response })
   }
@@ -81,8 +81,8 @@ const getAccessToken = query => {
   }
 }
 
-const getIdentity = (accessToken) => {
-  const config = ServiceConfiguration.configurations.findOne({ service: 'lea' })
+const getIdentity = async (accessToken) => {
+  const config = await ServiceConfiguration.configurations.findOneAsync({ service: 'lea' })
   if (!config) {
     throw new ServiceConfiguration.ConfigError()
   }
@@ -93,7 +93,7 @@ const getIdentity = (accessToken) => {
   }
 
   try {
-    response = HTTP.get(config.identityUrl, options)
+    response = await HTTP.get(config.identityUrl, options)
   } catch (err) {
     const errorResponse = err.response
     console.error(errorResponse.data)
